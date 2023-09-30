@@ -1,9 +1,11 @@
-import time, pickle, os
+import os
+import pickle
+import time
 from urllib import parse
 
+from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 import config
@@ -21,7 +23,7 @@ BASE_URL = "https://hh.ru"
 
 class Main:
     _links: list = []
-    driver = webdriver.Chrome()
+    driver = webdriver.Edge()
     driver.set_page_load_timeout(10)
 
     def __init__(self, vacancy: str, professional_role: int, salary: int = 0, only_with_salary: bool = False,
@@ -143,7 +145,7 @@ class Main:
 if __name__ == '__main__':
     # Пример использования
     schedules = []
-    m = Main(vacancy='1С', salary=300000, only_with_salary=True, professional_role=96, schedules=schedules, areas=['2019', '1'])
+    m = Main(vacancy='C++', salary=250000, only_with_salary=True, professional_role=96, schedules=schedules, areas=['2019', '1'])
     status_auth = None
 
     if not os.path.exists('./cookie.pickle'):
