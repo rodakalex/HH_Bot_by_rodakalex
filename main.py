@@ -4,7 +4,7 @@ import time
 from urllib import parse
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -26,7 +26,8 @@ class Main:
     driver = webdriver.Edge()
     driver.set_page_load_timeout(10)
 
-    def __init__(self, vacancy: str, professional_role: int, salary: int = 0, only_with_salary: bool = False,
+    def __init__(self, vacancy: str, professional_role: int, resume: str, salary: int = 0,
+                 only_with_salary: bool = False,
                  schedules: list = None, areas: list = None):
         self.schedule = '&'.join(f"schedule={schedule}" for schedule in schedules) if schedules else ''
         self.area = '&'.join(f"area={area}" for area in areas) if areas else ''
@@ -36,6 +37,7 @@ class Main:
         self.salary = salary
         self.only_with_salary = only_with_salary
         self.professional_role = professional_role
+        self.resume = resume
 
     def open_cookie(self):
         with open('cookie.pickle', 'rb') as file:
@@ -81,7 +83,7 @@ class Main:
                 for link in vacancy_list:
                     self._links.append(link.get_attribute('href'))
 
-                print(f'Страница вакансий успешно загружена, страница #{index}')
+                print(f'Страница вакансий успешно загружена, страница #{index + 1}')
                 index += 1
                 if vacancy_count != 50:
                     return
@@ -101,21 +103,19 @@ class Main:
                         xpath_letter_button = 'button[data-qa="vacancy-response-letter-toggle"]'
                         letter_button = self.driver.find_element(By.CSS_SELECTOR, xpath_letter_button)
                         letter_button.click()
-                    except NoSuchElementException:
-                        pass
 
-                    try:
+                        resume_text_selector = f"//*[contains(text(), '{self.resume}')]"
+                        resume_button = self.driver.find_element(By.XPATH, resume_text_selector)
+                        resume_button.click()
+
                         xpath_letter = "textarea[data-qa='vacancy-response-popup-form-letter-input']"
                         letter = self.driver.find_element(By.CSS_SELECTOR, xpath_letter)
                         letter.send_keys('Добрый день! Пожалуйста, рассмотрите мою кандидатуру')
-                    except NoSuchElementException:
-                        pass
 
-                    try:
                         xpath_submit_button = 'button[data-qa="vacancy-response-submit-popup"]'
                         submit_button = self.driver.find_element(By.CSS_SELECTOR, xpath_submit_button)
                         submit_button.click()
-                    except NoSuchElementException:
+                    except:
                         pass
 
                     time.sleep(2)
@@ -124,7 +124,7 @@ class Main:
                     self.driver.execute_script("window.stop();")
 
                 attempt += 1
-        print('Отклики на все вакансии успешно оставлены!')
+        print('Отклики на все вакансии успешно оставлены.\nУдачного поиска работы!')
 
     def save_cookie(self):
         with open('cookie.pickle', 'wb') as cookie:
@@ -144,8 +144,9 @@ class Main:
 
 if __name__ == '__main__':
     # Пример использования
-    schedules = []
-    m = Main(vacancy='C++', salary=250000, only_with_salary=True, professional_role=96, schedules=schedules, areas=['2019', '1'])
+    schedules = ['fullDay']
+    m = Main(vacancy='C++', salary=250000, only_with_salary=True, professional_role=96, schedules=schedules,
+             resume='Программист C/C++', areas=[1])
     status_auth = None
 
     if not os.path.exists('./cookie.pickle'):
@@ -153,6 +154,7 @@ if __name__ == '__main__':
         question_save_cookie = input('Сохранить логин и пароль? (y/n)\n')
         if question_save_cookie == 'y':
             m.save_cookie()
+            print('Данные сохранены')
     else:
         status_auth = m.open_cookie()
     if status_auth == 'Ok':
