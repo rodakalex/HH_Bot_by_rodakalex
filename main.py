@@ -1,23 +1,14 @@
 import os
 import pickle
 import time
-from urllib import parse
-
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 import config
 
-'''
-TODO:
-    1. Дополнить роли
-'''
-roles = {
-    1: 'Event-manager',
-    2: 'PR-manager'
-}
+
 BASE_URL = "https://hh.ru"
 
 
@@ -26,18 +17,10 @@ class Main:
     driver = webdriver.Edge()
     driver.set_page_load_timeout(10)
 
-    def __init__(self, vacancy: str, professional_role: int, resume: str, salary: int = 0,
-                 only_with_salary: bool = False,
-                 schedules: list = None, areas: list = None):
-        self.schedule = '&'.join(f"schedule={schedule}" for schedule in schedules) if schedules else ''
-        self.area = '&'.join(f"area={area}" for area in areas) if areas else ''
+    def __init__(self, base_url):
         self.login = config.login
         self.password = config.password
-        self.vacancy = parse.quote_plus(vacancy)
-        self.salary = salary
-        self.only_with_salary = only_with_salary
-        self.professional_role = professional_role
-        self.resume = resume
+        self.base_url = base_url
 
     def open_cookie(self):
         with open('cookie.pickle', 'rb') as file:
@@ -68,11 +51,7 @@ class Main:
         self.driver.set_page_load_timeout(5)
 
         while True:
-            vacancy_search_url = (f'{BASE_URL}/search/vacancy?{self.area}&professional_role={self.professional_role}&'
-                                  f'{self.schedule}&search_field=name&search_field=company_name&'
-                                  f'search_field=description&enable_snippets=true&salary={self.salary}&'
-                                  f'only_with_salary={self.only_with_salary}&text='
-                                  f'{self.vacancy}&from=suggest_post&L_save_area=true&page={index}')
+            vacancy_search_url = f'{self.base_url}&page={index}'
             try:
                 if self.driver.current_url != vacancy_search_url:
                     self.driver.get(vacancy_search_url)
@@ -143,10 +122,8 @@ class Main:
 
 
 if __name__ == '__main__':
-    # Пример использования
-    schedules = ['fullDay']
-    m = Main(vacancy='C++', salary=250000, only_with_salary=True, professional_role=96, schedules=schedules,
-             resume='Программист C/C++', areas=[1])
+    m = Main(base_url='https://hh.ru/search/vacancy?text=java+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8'
+                      '%D1%81%D1%82&area=1&hhtmFrom=main&hhtmFromLabel=vacancy_search_line')
     status_auth = None
 
     if not os.path.exists('./cookie.pickle'):
