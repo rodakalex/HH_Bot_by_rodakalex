@@ -32,17 +32,15 @@ class Main:
 
     def auth(self) -> str:
         self.driver.set_page_load_timeout(5)
-        try:
-            self.driver.get(f'{BASE_URL}/account/login?backurl=%2F&hhtmFrom=main')
-        except TimeoutException:
-            self.driver.execute_script("window.stop();")
-            login_by_password = self.driver.find_element(By.CSS_SELECTOR, 'button[data-qa="expand-login-by-password"]')
-            login_by_password.click()
-            username = self.driver.find_element(By.CSS_SELECTOR, "input[data-qa='login-input-username']")
-            username.send_keys(self.login)
-            password = self.driver.find_element(By.CSS_SELECTOR, "input[data-qa='login-input-password']")
-            password.send_keys(self.password)
-            password.send_keys(Keys.ENTER)
+        self.driver.get(f'{BASE_URL}/account/login?backurl=%2F&hhtmFrom=main')
+        self.driver.execute_script("window.stop();")
+        login_by_password = self.driver.find_element(By.CSS_SELECTOR, 'button[data-qa="expand-login-by-password"]')
+        login_by_password.click()
+        username = self.driver.find_element(By.CSS_SELECTOR, "input[data-qa='login-input-username']")
+        username.send_keys(self.login)
+        password = self.driver.find_element(By.CSS_SELECTOR, "input[data-qa='login-input-password']")
+        password.send_keys(self.password)
+        password.send_keys(Keys.ENTER)
 
         return 'Ok'
 
